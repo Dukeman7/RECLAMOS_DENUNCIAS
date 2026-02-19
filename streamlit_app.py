@@ -26,8 +26,8 @@ if not df_filtered.empty:
     total_filas = len(df_filtered)
     
     # Inicializamos el índice en la memoria si no existe
-    if 'indice_reclamo' not in st.session_state:
-        st.session_state.indice_reclamo = 0
+if 'indice_reclamo' not in st.session_state:
+    st.session_state.indice_reclamo = 0
 
     # Controles de navegación en la barra lateral
     st.sidebar.markdown(f"### Registro {st.session_state.indice_reclamo + 1} de {total_filas}")
