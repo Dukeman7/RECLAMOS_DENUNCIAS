@@ -20,21 +20,36 @@ if uploaded_file:
     # Limpieza básica de columnas para que coincidan con tus requisitos
     # (Aquí podrías mapear los nombres reales de tu Excel a estos estándar)
     
-    # 2. Buscador y Navegación
-    st.sidebar.header("🔍 Navegación")
-    search_query = st.sidebar.text_input("Buscar por Cédula o Código")
-    
-    if search_query:
-        df_filtered = df[df.astype(str).apply(lambda x: search_query in x.values, axis=1)]
-    else:
-        df_filtered = df
+    # --- LÓGICA DE NAVEGACIÓN CON MEMORIA ---
 
-    if not df_filtered.empty:
-        total_filas = len(df_filtered)
-        indice = st.sidebar.number_input("Registro actual", min_value=1, max_value=total_filas, step=1) - 1
-        
-        # Extraer datos de la fila seleccionada
-        fila = df_filtered.iloc[indice]
+if not df_filtered.empty:
+    total_filas = len(df_filtered)
+    
+    # Inicializamos el índice en la memoria si no existe
+    if 'indice_reclamo' not in st.session_state:
+        st.session_state.indice_reclamo = 0
+
+    # Controles de navegación en la barra lateral
+    st.sidebar.markdown(f"### Registro {st.session_state.indice_reclamo + 1} de {total_filas}")
+    
+    col_nav1, col_nav2 = st.sidebar.columns(2)
+    
+    with col_nav1:
+        if st.button("⬅️ Anterior"):
+            if st.session_state.indice_reclamo > 0:
+                st.session_state.indice_reclamo -= 1
+                st.rerun() # Fuerza la recarga con el nuevo dato
+
+    with col_nav2:
+        if st.button("Siguiente ➡️"):
+            if st.session_state.indice_reclamo < total_filas - 1:
+                st.session_state.indice_reclamo += 1
+                st.rerun() # Fuerza la recarga con el nuevo dato
+
+    # Extraer datos de la fila según la memoria
+    fila = df_filtered.iloc[st.session_state.indice_reclamo]
+    
+    # ... (aquí sigue el resto de tu código para mostrar la ficha)
         
         # 3. Diseño de la Ficha en Pantalla (Simulando "VUELTA A CONATEL")
         col1, col2 = st.columns([2, 1])
