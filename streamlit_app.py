@@ -1,36 +1,33 @@
 import streamlit as st
 import pandas as pd
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw
 import io
 
-# Configuración de página - Modo Búnker
+# Configuración de página
 st.set_page_config(page_title="Visor de Reclamos THUNDERNET", layout="wide")
 
-# Título con estilo
 st.title("🛡️ Visor de Reclamos - Auxilio CONATEL")
 st.markdown("---")
 
-# 1. Carga del archivo simplificado (.xlsm con una pestaña)
 uploaded_file = st.sidebar.file_uploader("Cargar Plantilla (test)", type=["xlsm", "xlsx"])
 
 if uploaded_file:
-    # Leemos la única pestaña disponible
-    df = pd.read_excel(uploaded_file) 
+    # Leemos el Excel y limpiamos los nombres de las columnas (quitamos espacios y pasamos a minúsculas para comparar)
+    df = pd.read_excel(uploaded_file)
+    df.columns = df.columns.str.strip() # Limpia espacios invisibles
     
-    # Buscador en la barra lateral
+    # Buscador
     st.sidebar.header("🔍 Filtro Rápido")
     search_query = st.sidebar.text_input("Buscar por Cédula o Código")
     
     if search_query:
-        df_filtered = df[df.astype(str).apply(lambda x: search_query in x.values, axis=1)]
+        df_filtered = df[df.astype(str).apply(lambda x: search_query.lower() in x.values.astype(str).lower(), axis=1)]
     else:
         df_filtered = df
 
-    # --- NAVEGACIÓN CON MEMORIA DE ESTADO ---
     if not df_filtered.empty:
         total_filas = len(df_filtered)
         
-        # Sincronizamos el índice
         if 'idx' not in st.session_state or st.session_state.idx >= total_filas:
             st.session_state.idx = 0
 
@@ -48,47 +45,57 @@ if uploaded_file:
                     st.session_state.idx += 1
                     st.rerun()
 
-        # Extraer fila actual
         fila = df_filtered.iloc[st.session_state.idx]
         
-        # 3. La Ficha en Pantalla (Campos Imprescindibles)
+        # --- MAPEO DINÁMICO DE COLUMNAS (Ajustado a tu archivo) ---
+        # Usamos .get() con el nombre exacto que aparece en tu archivo test
+        codigo = fila.get('código') or fila.get('Código') or "N/A"
+        denunciante = fila.get('Denunciante') or "N/A"
+        cedula = fila.get('Cédula') or "N/A"
+        asunto = fila.get('Asunto') or "N/A"
+        descripcion = fila.get('Descripción') or "Sin detalle"
+        estatus = fila.get('ESTATUS') or "N/A"
+        fecha = fila.get('Fecha') or "N/A"
+        tipo = fila.get('Tipo de reporte') or "N/A"
+        municipio = fila.get('Municipio') or ""
+        estado_local = fila.get('estado') or fila.get('Estado') or ""
+        telefono = fila.get('Teléfono') or "N/A"
+
+        # 3. Diseño de la Ficha
         col_izq, col_der = st.columns([2, 1])
         
         with col_izq:
-            st.subheader(f"📋 Ficha: {fila.get('código', 'N/A')}")
-            st.info(f"**Denunciante:** {fila.get('Denunciante', 'N/A')} | **C.I.:** {fila.get('Cédula', 'N/A')}")
-            st.warning(f"**Asunto:** {fila.get('Asunto', 'N/A')}")
-            st.markdown(f"**Descripción:**\n\n{fila.get('Descripción', 'Sin detalle')}")
+            st.subheader(f"📋 Ficha: {codigo}")
+            st.info(f"**Denunciante:** {denunciante} | **C.I.:** {cedula}")
+            st.warning(f"**Asunto:** {asunto}")
+            st.markdown(f"**Descripción:**\n\n{descripcion}")
         
         with col_der:
-            st.error(f"**ESTATUS:** {fila.get('ESTATUS', 'N/A')}")
-            st.write(f"📅 **Fecha:** {fila.get('Fecha', 'N/A')}")
-            st.write(f"🏷️ **Tipo:** {fila.get('Tipo de reporte', 'N/A')}")
-            st.write(f"📍 **Ubicación:** {fila.get('Municipio', 'N/A')}, {fila.get('estado', 'N/A')}")
-            st.write(f"📞 **Teléfono:** {fila.get('Teléfono', 'N/A')}")
+            st.error(f"**ESTATUS:** {estatus}")
+            st.write(f"📅 **Fecha:** {fecha}")
+            st.write(f"🏷️ **Tipo:** {tipo}")
+            st.write(f"📍 **Ubicación:** {municipio}, {estado_local}")
+            st.write(f"📞 **Teléfono:** {telefono}")
 
         # 4. Generador de Imagen PNG
-        def crear_png(data):
-            # Lienzo blanco
+        def crear_png():
             img = Image.new('RGB', (800, 600), color=(255, 255, 255))
             d = ImageDraw.Draw(img)
-            # Dibujamos los datos básicos (Simulacro de Ficha)
-            d.text((40, 40), f"RECLAMO: {data.get('código', 'N/A')}", fill=(0,0,0))
-            d.text((40, 80), f"DENUNCIANTE: {data.get('Denunciante', 'N/A')}", fill=(0,0,0))
-            d.text((40, 120), f"CEDULA: {data.get('Cédula', 'N/A')}", fill=(0,0,0))
-            d.text((40, 520), f"ESTATUS: {data.get('ESTATUS', 'N/A')}", fill=(200,0,0))
-            
+            d.text((40, 40), f"RECLAMO: {codigo}", fill=(0,0,0))
+            d.text((40, 80), f"DENUNCIANTE: {denunciante}", fill=(0,0,0))
+            d.text((40, 120), f"CEDULA: {cedula}", fill=(0,0,0))
+            d.text((40, 520), f"ESTATUS: {estatus}", fill=(200,0,0))
             buf = io.BytesIO()
             img.save(buf, format='PNG')
             return buf.getvalue()
 
         st.download_button(
             label="📥 Descargar Ficha (PNG)",
-            data=crear_png(fila),
-            file_name=f"Ficha_{fila.get('código', 'export')}.png",
+            data=crear_png(),
+            file_name=f"Ficha_{codigo}.png",
             mime="image/png"
         )
     else:
-        st.error("No hay datos que coincidan con la búsqueda.")
+        st.error("No hay datos que coincidan.")
 else:
-    st.info("💡 Por favor, sube el archivo 'plantilla reclamos VENAPP (test).xlsm' para visualizar las fichas.")
+    st.info("💡 Sube el archivo para activar el búnker de reclamos.")
