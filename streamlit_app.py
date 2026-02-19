@@ -52,7 +52,7 @@ if 'indice_reclamo' not in st.session_state:
     # ... (aquí sigue el resto de tu código para mostrar la ficha)
         
         # 3. Diseño de la Ficha en Pantalla (Simulando "VUELTA A CONATEL")
-        col1, col2 = st.columns([2, 1])
+    col1, col2 = st.columns([2, 1])
         
         with col1:
             st.subheader(f"📋 Ficha de Reclamo: {fila.get('código', 'N/A')}")
