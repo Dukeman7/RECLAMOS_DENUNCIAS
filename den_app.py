@@ -44,28 +44,28 @@ def generar_ficha_pro(data):
     d.text((60, 315), ubicacion, fill=texto_negro)
     d.text((60, 345), f"Parroquia: {data.get('Parroquia', 'S/D')}", fill=texto_negro)
 
-    # E. Bloque: DETALLE DEL RECLAMO   660 por 550
-    d.rectangle([40, 400, width-40, 550], outline=gris_borde, width=2)
-    d.text((50, 405), "DETALLE DEL RECLAMO", fill=azul_fuerte)
-    d.text((60, 435), f"Asunto: {data.get('Asunto', 'S/D')}", fill=texto_negro)
+    # E. Bloque: DETALLE DEL RECLAMO   660 por 600
+    d.rectangle([40, 400, width-40, 600], outline=gris_borde, width=2)
+    d.text((50, 305), "DETALLE DEL RECLAMO", fill=azul_fuerte)  #405 x 305
+    d.text((60, 335), f"Asunto: {data.get('Asunto', 'S/D')}", fill=texto_negro) #435x335
     
     desc_cuerpo = str(data.get('Descripción', 'Sin descripción adicional'))
     lines = [desc_cuerpo[i:i+85] for i in range(0, len(desc_cuerpo), 85)][:7]
-    y_desc = 470
-    d.text((60, 470), "Descripcion del Ciudadano:", fill=(100, 100, 100))
+    y_desc = 370  # cambie de 470 a 370
+    d.text((60, 370), "Descripcion del Ciudadano:", fill=(100, 100, 100))
     for line in lines:
         y_desc += 22
         d.text((60, y_desc), line, fill=(60, 60, 60))
 
     # F. Bloque: GESTIÓN INTERNA (El área blanca de Daniel)
-    d.rectangle([40, 680, width-40, 950], fill=gris_fondo, outline=gris_borde)
-    d.text((50, 685), "PARA USO INTERNO / RESPUESTA TECNICA", fill=azul_fuerte)
+    d.rectangle([40, 480, width-40, 750], fill=gris_fondo, outline=gris_borde)  # cambio 680 x480 y 950x750
+    d.text((50, 485), "PARA USO INTERNO / RESPUESTA TECNICA", fill=azul_fuerte)
     # Cuadro para escribir
-    d.rectangle([60, 720, width-60, 880], fill=(255, 255, 255), outline=gris_borde)
-    d.text((70, 730), "Observaciones del Tecnico:", fill=(200, 200, 200))
+    d.rectangle([60, 520, width-60, 680], fill=(255, 255, 255), outline=gris_borde)
+    d.text((70, 530), "Observaciones del Tecnico:", fill=(200, 200, 200))
     
-    d.text((60, 910), "Firma Responsable: ____________________", fill=texto_negro)
-    d.text((width-260, 910), "Fecha Cierre: __/__/2026", fill=texto_negro)
+    d.text((60, 710), "Firma Responsable: ____________________", fill=texto_negro)
+    d.text((width-260, 710), "Fecha Cierre: __/__/2026", fill=texto_negro)
 
     # Retorno de imagen
     img_byte_arr = io.BytesIO()
