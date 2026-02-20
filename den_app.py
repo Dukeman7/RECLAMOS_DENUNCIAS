@@ -3,6 +3,32 @@ import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 import io
 
+# 1. Configuración (Siempre al principio)
+st.set_page_config(page_title="Ficha-Bot Duque", layout="wide")
+st.title("🚀 Ficha-Bot: Gestión de Denuncias Duque")
+
+# 2. DEFINIR LA VARIABLE (Aquí es donde estaba el error)
+# Esta línea TIENE que ir antes que cualquier "if" que use ese nombre
+archivo_subido = st.file_uploader("Arrastra aquí tu archivo CSV", type=["csv"])
+
+# 3. USAR LA VARIABLE
+if archivo_subido is not None:
+    try:
+        # Usamos el motor de Python que es más robusto para archivos de Excel/Bloc de Notas
+        df = pd.read_csv(archivo_subido, sep=None, engine='python', on_bad_lines='skip', encoding='utf-8')
+    except Exception:
+        archivo_subido.seek(0)
+        df = pd.read_csv(archivo_subido, sep=',', on_bad_lines='skip', encoding='latin-1')
+
+    if not df.empty:
+        st.success(f"✅ Base de datos cargada: {len(df)} registros.")
+        
+        # Selector de Código
+        opciones = df['Código'].unique()
+        codigo_sel = st.selectbox("Busca el Código CONATEL:", opciones)
+        
+        # ... aquí sigue el resto de tu lógica de generar_ficha_png ...
+        # (Asegúrate de que la función generar_ficha_png esté definida arriba)
 # Configuración de la página
 st.set_page_config(page_title="Ficha-Bot Duque", layout="wide")
 
