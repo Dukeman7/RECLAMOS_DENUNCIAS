@@ -8,12 +8,11 @@ st.set_page_config(page_title="Ficha-Bot Duque 2.0", layout="wide")
 
 # 2. FUNCIÓN DE DISEÑO PRO (Corregida y completa)
 def generar_ficha_pro(data):
-    # Lienzo tipo A4 vertical (800x1000) ahora 450x700 LD
-    width, height = 450, 700
+    # 1. Ajuste de Lienzo: 550 ancho (mejor para lectura) x 750 alto (compacto pero todo cabe)
+    width, height = 550, 750
     img = Image.new('RGB', (width, height), color=(255, 255, 255))
     d = ImageDraw.Draw(img)
     
-    # Paleta de Colores
     azul_fuerte = (27, 79, 114)
     gris_borde = (200, 200, 200)
     gris_fondo = (245, 248, 250)
@@ -21,57 +20,56 @@ def generar_ficha_pro(data):
     texto_negro = (30, 30, 30)
 
     # A. Encabezado
-    d.rectangle([0, 0, width, 80], fill=azul_fuerte)
-    d.text((width//2 - 140, 35), "FICHA DE RECLAMO - GESTION DUQUE", fill=(255, 255, 255))
+    d.rectangle([0, 0, width, 70], fill=azul_fuerte)
+    d.text((width//2 - 140, 25), "FICHA DE RECLAMO - GESTION DUQUE", fill=(255, 255, 255))
 
-    # B. Código y Estatus
-    d.text((40, 110), f"CODIGO: {data.get('Código', 'S/D')}", fill=texto_negro)
-    d.text((width - 280, 110), f"ESTATUS: {data.get('ESTATUS', 'ABIERTO')}", fill=rojo_status)
-          # cambié 220 por 280
-    # C. Bloque: DATOS DEL CLIENTE
-    d.rectangle([40, 150, width-40, 260], outline=gris_borde, width=2)
-    d.text((50, 155), "DATOS DEL CLIENTE", fill=azul_fuerte)
-    d.text((60, 185), f"Nombre: {data.get('Denunciante', 'S/D')}", fill=texto_negro)
-    d.text((60, 215), f"Cedula: {data.get('Cédula Denunciante', 'S/D')}", fill=texto_negro)
-    # Contacto en una línea
-    contacto = f"Telf: {data.get('Teléfono Denunciante', 'S/D')}   |   Email: {data.get('Correo Denunciante', 'S/D')}"
-    d.text((60, 235), contacto, fill=texto_negro)
+    # B. Código y Estatus (y=90)
+    d.text((40, 85), f"CODIGO: {data.get('Código', 'S/D')}", fill=texto_negro)
+    d.text((width - 180, 85), f"ESTATUS: {data.get('ESTATUS', 'ABIERTO')}", fill=rojo_status)
 
-    # D. Bloque: UBICACIÓN          cambie aqui 380 por 300
-    d.rectangle([40, 280, width-40, 300], outline=gris_borde, width=2)
-    d.text((50, 285), "UBICACION DEL INCIDENTE", fill=azul_fuerte)
-    ubicacion = f"Estado: {data.get('Estado', 'S/D')} | Municipio: {data.get('Municipio', 'S/D')}"
-    d.text((60, 315), ubicacion, fill=texto_negro)
-    d.text((60, 345), f"Parroquia: {data.get('Parroquia', 'S/D')}", fill=texto_negro)
+    # C. Bloque: DATOS DEL CLIENTE (y=120 a 210)
+    d.rectangle([40, 115, width-40, 210], outline=gris_borde, width=2)
+    d.text((50, 120), "DATOS DEL CLIENTE", fill=azul_fuerte)
+    d.text((60, 145), f"Nombre: {data.get('Denunciante', 'S/D')}", fill=texto_negro)
+    contacto = f"C.I: {data.get('Cédula Denunciante', 'S/D')}  |  Telf: {data.get('Teléfono Denunciante', 'S/D')}"
+    d.text((60, 175), contacto, fill=texto_negro)
 
-    # E. Bloque: DETALLE DEL RECLAMO   660 por 600
-    d.rectangle([40, 400, width-40, 600], outline=gris_borde, width=2)
-    d.text((50, 305), "DETALLE DEL RECLAMO", fill=azul_fuerte)  #405 x 305
-    d.text((60, 335), f"Asunto: {data.get('Asunto', 'S/D')}", fill=texto_negro) #435x335
+    # D. Bloque: UBICACIÓN (y=220 a 290) - Reducido el espacio
+    d.rectangle([40, 220, width-40, 290], outline=gris_borde, width=2)
+    d.text((50, 225), "UBICACION", fill=azul_fuerte)
+    ubicacion = f"{data.get('Estado', 'S/D')} | {data.get('Municipio', 'S/D')} | {data.get('Parroquia', 'S/D')}"
+    d.text((60, 255), ubicacion, fill=texto_negro)
+
+    # E. Bloque: DETALLE DEL RECLAMO (y=300 a 480)
+    d.rectangle([40, 300, width-40, 480], outline=gris_borde, width=2)
+    d.text((50, 305), "DETALLE DEL RECLAMO", fill=azul_fuerte)
+    d.text((60, 330), f"Asunto: {data.get('Asunto', 'S/D')[:50]}", fill=texto_negro) # Limitado asunto
     
-    desc_cuerpo = str(data.get('Descripción', 'Sin descripción adicional'))
-    lines = [desc_cuerpo[i:i+85] for i in range(0, len(desc_cuerpo), 85)][:7]
-    y_desc = 370  # cambie de 470 a 370
-    d.text((60, 370), "Descripcion del Ciudadano:", fill=(100, 100, 100))
+    desc_cuerpo = str(data.get('Descripción', 'Sin descripción'))
+    # Limitamos a 5 líneas y recortamos caracteres para que no se salga del ancho
+    lines = [desc_cuerpo[i:i+60] for i in range(0, len(desc_cuerpo), 60)][:5]
+    y_desc = 355
+    d.text((60, 355), "Descripción:", fill=(100, 100, 100))
     for line in lines:
-        y_desc += 22
+        y_desc += 20
         d.text((60, y_desc), line, fill=(60, 60, 60))
 
-    # F. Bloque: GESTIÓN INTERNA (El área blanca de Daniel)
-    d.rectangle([40, 580, width-40, 850], fill=gris_fondo, outline=gris_borde)  # cambio 680 x480 y 950x750
-    d.text((50, 585), "PARA USO INTERNO / RESPUESTA TECNICA", fill=azul_fuerte)
-    # Cuadro para escribir
-    d.rectangle([60, 620, width-60, 680], fill=(255, 255, 255), outline=gris_borde)
-    d.text((70, 630), "Observaciones del Tecnico:", fill=(200, 200, 200))
+    # F. Bloque: GESTIÓN INTERNA (Daniel) (y=490 a 700)
+    d.rectangle([40, 495, width-40, 680], fill=gris_fondo, outline=gris_borde)
+    d.text((50, 500), "PARA USO INTERNO / RESPUESTA TECNICA", fill=azul_fuerte)
+    # Cuadro blanco para escribir
+    d.rectangle([60, 530, width-60, 620], fill=(255, 255, 255), outline=gris_borde)
+    d.text((70, 540), "Observaciones del Técnico:", fill=(200, 200, 200))
     
-    d.text((60, 810), "Firma Responsable: ____________________", fill=texto_negro)
-    d.text((width-260, 810), "Fecha Cierre: __/__/2026", fill=texto_negro)
+    # G. Firma y Fecha (Relocalizados al fondo de la nueva altura)
+    d.text((60, 645), "Firma Responsable: ____________________", fill=texto_negro)
+    d.text((width-220, 645), "Fecha: __/__/2026", fill=texto_negro)
 
     # Retorno de imagen
     img_byte_arr = io.BytesIO()
     img.save(img_byte_arr, format='PNG')
     return img_byte_arr.getvalue()
-
+    
 # 3. INTERFAZ STREAMLIT
 st.title("🚀 Ficha-Bot Duque Professional")
 st.markdown("Generación de expedientes técnicos con formato de auditoría.")
