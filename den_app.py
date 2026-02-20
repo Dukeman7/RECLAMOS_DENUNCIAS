@@ -58,14 +58,14 @@ def generar_ficha_pro(data):
         d.text((60, y_desc), line, fill=(60, 60, 60))
 
     # F. Bloque: GESTIÓN INTERNA (El área blanca de Daniel)
-    d.rectangle([40, 480, width-40, 750], fill=gris_fondo, outline=gris_borde)  # cambio 680 x480 y 950x750
-    d.text((50, 485), "PARA USO INTERNO / RESPUESTA TECNICA", fill=azul_fuerte)
+    d.rectangle([40, 580, width-40, 850], fill=gris_fondo, outline=gris_borde)  # cambio 680 x480 y 950x750
+    d.text((50, 585), "PARA USO INTERNO / RESPUESTA TECNICA", fill=azul_fuerte)
     # Cuadro para escribir
-    d.rectangle([60, 520, width-60, 680], fill=(255, 255, 255), outline=gris_borde)
-    d.text((70, 530), "Observaciones del Tecnico:", fill=(200, 200, 200))
+    d.rectangle([60, 620, width-60, 680], fill=(255, 255, 255), outline=gris_borde)
+    d.text((70, 630), "Observaciones del Tecnico:", fill=(200, 200, 200))
     
-    d.text((60, 710), "Firma Responsable: ____________________", fill=texto_negro)
-    d.text((width-260, 710), "Fecha Cierre: __/__/2026", fill=texto_negro)
+    d.text((60, 810), "Firma Responsable: ____________________", fill=texto_negro)
+    d.text((width-260, 810), "Fecha Cierre: __/__/2026", fill=texto_negro)
 
     # Retorno de imagen
     img_byte_arr = io.BytesIO()
