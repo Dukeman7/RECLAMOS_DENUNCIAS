@@ -18,18 +18,21 @@ def generar_ficha_png(data):
     
     # Encabezado
     d.rectangle([0, 0, width, 120], fill=azul_conatel)
+    # Usamos draw.text sin fuentes externas para evitar errores de archivo en el servidor
     d.text((40, 30), "REPORTE DE INCIDENCIA REGULATORIA", fill=(200, 200, 200))
-    d.text((40, 55), f"CÓDIGO: {data.get('Código', 'N/A')}", fill=(255, 255, 255))
+    d.text((40, 55), f"CODIGO: {data.get('Código', 'N/A')}", fill=(255, 255, 255))
     
     # Cuerpo de datos
-    d.rectangle([40, 150, 860, 520], outline=(220, 220, 220), width=2)
+    d.rectangle([40, 150, 860, 550], outline=(220, 220, 220), width=2)
     y = 170
+    
+    # Mapeo de campos
     fields = [
         ("OPERADOR", str(data.get('OPERADOR', 'THUNDERNET'))),
-        ("FECHA REGISTRO", str(data.get('FECHA', 'S/D'))),
+        ("FECHA", str(data.get('FECHA', 'S/D'))),
         ("DENUNCIANTE", str(data.get('Denunciante', 'S/D'))),
-        ("CÉDULA", str(data.get('Cédula Denunciante', 'S/D'))),
-        ("UBICACIÓN", f"{data.get('Estado', '')} / {data.get('Municipio', '')}"),
+        ("CEDULA", str(data.get('Cédula Denunciante', 'S/D'))),
+        ("UBICACION", f"{data.get('Estado', '')} / {data.get('Municipio', '')}"),
         ("ASUNTO", str(data.get('Asunto', 'S/D'))),
     ]
     
@@ -39,9 +42,10 @@ def generar_ficha_png(data):
         y += 45
 
     # Descripción
-    d.text((60, y), "DESCRIPCIÓN:", fill=azul_conatel)
+    d.text((60, y), "DESCRIPCION:", fill=azul_conatel)
     desc = str(data.get('Descripción', 'Sin descripción'))
-    lines = [desc[i:i+80] for i in range(0, len(desc), 80)][:5]
+    # Ajuste de texto simple para que no se desborde
+    lines = [desc[i:i+80] for i in range(0, len(desc), 80)][:6]
     y += 30
     for line in lines:
         d.text((60, y), line, fill=(80, 80, 80))
@@ -49,23 +53,22 @@ def generar_ficha_png(data):
         
     # Pie de página
     d.rectangle([0, 680, width, 750], fill=gris_fondo)
-    d.text((40, 700), "SISTEMA DE GESTIÓN REGULATORIA DUQUE - MODO AUTOMATION", fill=(100, 100, 100))
+    d.text((40, 705), "SISTEMA DE GESTION REGULATORIA DUQUE - MODO AUTOMATION", fill=(100, 100, 100))
 
     img_byte_arr = io.BytesIO()
     img.save(img_byte_arr, format='PNG')
     return img_byte_arr.getvalue()
 
-# 3. INTERFAZ DE USUARIO (Orden Crítico)
+# 3. INTERFAZ DE USUARIO
 st.title("🚀 Ficha-Bot: Inteligencia de Denuncias")
-st.markdown("Convierte sábanas de Excel en fichas de acción rápida.")
+st.markdown("Generación de fichas técnicas para casos CONATEL / VenApp.")
 
-# A. Definimos el cargador PRIMERO
-archivo_subido = st.file_uploader("Sube tu archivo CSV (UTF-8)", type=["csv"])
+# Cargador
+archivo_subido = st.file_uploader("Sube tu archivo CSV", type=["csv"])
 
-# B. Lógica de procesamiento DESPUÉS
 if archivo_subido is not None:
     try:
-        # Intento robusto de lectura
+        # Intento con motor flexible
         df = pd.read_csv(archivo_subido, sep=None, engine='python', on_bad_lines='skip', encoding='utf-8')
     except Exception:
         archivo_subido.seek(0)
@@ -74,9 +77,27 @@ if archivo_subido is not None:
     if not df.empty:
         st.success(f"✅ Se cargaron {len(df)} registros correctamente.")
         
-        # Selector de Código
+        # Verificamos que exista la columna crítica
         if 'Código' in df.columns:
-            codigo_sel = st.selectbox("Busca el Código a reportar:", df['Código'].unique())
+            codigo_sel = st.selectbox("Selecciona el Código a procesar:", df['Código'].unique())
             
             if codigo_sel:
-                datos_caso = df[df['
+                # Filtrar el caso seleccionado
+                datos_caso = df[df['Código'] == codigo_sel].iloc[0]
+                
+                # Botón para disparar la generación
+                if st.button("Generar Ficha Visual"):
+                    with st.spinner('Dibujando ficha...'):
+                        ficha_png = generar_ficha_png(datos_caso)
+                        st.image(ficha_png, caption=f"Ficha generada para el caso {codigo_sel}")
+                        
+                        st.download_button(
+                            label="📥 Descargar Ficha PNG",
+                            data=ficha_png,
+                            file_name=f"Ficha_{codigo_sel}.png",
+                            mime="image/png"
+                        )
+        else:
+            st.error("Error: La columna 'Código' no fue detectada. Verifica el encabezado de tu CSV.")
+    else:
+        st.warning("El archivo parece estar vacío.")
