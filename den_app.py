@@ -3,125 +3,80 @@ import pandas as pd
 from PIL import Image, ImageDraw, ImageFont
 import io
 
-# 1. Configuración (Siempre al principio)
+# 1. CONFIGURACIÓN DE PÁGINA
 st.set_page_config(page_title="Ficha-Bot Duque", layout="wide")
-st.title("🚀 Ficha-Bot: Gestión de Denuncias Duque")
 
-# 2. DEFINIR LA VARIABLE (Aquí es donde estaba el error)
-# Esta línea TIENE que ir antes que cualquier "if" que use ese nombre
-archivo_subido = st.file_uploader("Arrastra aquí tu archivo CSV", type=["csv"])
+# 2. FUNCIÓN DE DISEÑO (El motor gráfico)
+def generar_ficha_png(data):
+    # Lienzo HD
+    width, height = 900, 750
+    img = Image.new('RGB', (width, height), color=(255, 255, 255))
+    d = ImageDraw.Draw(img)
+    
+    azul_conatel = (0, 51, 102)
+    gris_fondo = (245, 245, 245)
+    
+    # Encabezado
+    d.rectangle([0, 0, width, 120], fill=azul_conatel)
+    d.text((40, 30), "REPORTE DE INCIDENCIA REGULATORIA", fill=(200, 200, 200))
+    d.text((40, 55), f"CÓDIGO: {data.get('Código', 'N/A')}", fill=(255, 255, 255))
+    
+    # Cuerpo de datos
+    d.rectangle([40, 150, 860, 520], outline=(220, 220, 220), width=2)
+    y = 170
+    fields = [
+        ("OPERADOR", str(data.get('OPERADOR', 'THUNDERNET'))),
+        ("FECHA REGISTRO", str(data.get('FECHA', 'S/D'))),
+        ("DENUNCIANTE", str(data.get('Denunciante', 'S/D'))),
+        ("CÉDULA", str(data.get('Cédula Denunciante', 'S/D'))),
+        ("UBICACIÓN", f"{data.get('Estado', '')} / {data.get('Municipio', '')}"),
+        ("ASUNTO", str(data.get('Asunto', 'S/D'))),
+    ]
+    
+    for label, value in fields:
+        d.text((60, y), f"{label}:", fill=azul_conatel)
+        d.text((220, y), str(value), fill=(30, 30, 30))
+        y += 45
 
-# 3. USAR LA VARIABLE
+    # Descripción
+    d.text((60, y), "DESCRIPCIÓN:", fill=azul_conatel)
+    desc = str(data.get('Descripción', 'Sin descripción'))
+    lines = [desc[i:i+80] for i in range(0, len(desc), 80)][:5]
+    y += 30
+    for line in lines:
+        d.text((60, y), line, fill=(80, 80, 80))
+        y += 25
+        
+    # Pie de página
+    d.rectangle([0, 680, width, 750], fill=gris_fondo)
+    d.text((40, 700), "SISTEMA DE GESTIÓN REGULATORIA DUQUE - MODO AUTOMATION", fill=(100, 100, 100))
+
+    img_byte_arr = io.BytesIO()
+    img.save(img_byte_arr, format='PNG')
+    return img_byte_arr.getvalue()
+
+# 3. INTERFAZ DE USUARIO (Orden Crítico)
+st.title("🚀 Ficha-Bot: Inteligencia de Denuncias")
+st.markdown("Convierte sábanas de Excel en fichas de acción rápida.")
+
+# A. Definimos el cargador PRIMERO
+archivo_subido = st.file_uploader("Sube tu archivo CSV (UTF-8)", type=["csv"])
+
+# B. Lógica de procesamiento DESPUÉS
 if archivo_subido is not None:
     try:
-        # Usamos el motor de Python que es más robusto para archivos de Excel/Bloc de Notas
+        # Intento robusto de lectura
         df = pd.read_csv(archivo_subido, sep=None, engine='python', on_bad_lines='skip', encoding='utf-8')
     except Exception:
         archivo_subido.seek(0)
         df = pd.read_csv(archivo_subido, sep=',', on_bad_lines='skip', encoding='latin-1')
 
     if not df.empty:
-        st.success(f"✅ Base de datos cargada: {len(df)} registros.")
+        st.success(f"✅ Se cargaron {len(df)} registros correctamente.")
         
         # Selector de Código
-        opciones = df['Código'].unique()
-        codigo_sel = st.selectbox("Busca el Código CONATEL:", opciones)
-        
-        # ... aquí sigue el resto de tu lógica de generar_ficha_png ...
-        # (Asegúrate de que la función generar_ficha_png esté definida arriba)
-# Configuración de la página
-st.set_page_config(page_title="Ficha-Bot Duque", layout="wide")
-
-def generar_ficha_png(data):
-    # Crear un lienzo HD (900x700)
-    width, height = 900, 700
-    img = Image.new('RGB', (width, height), color=(255, 255, 255))
-    d = ImageDraw.Draw(img)
-    
-    # Colores Corporativos
-    azul_conatel = (0, 51, 102)
-    gris_fondo = (245, 245, 245)
-    texto_principal = (30, 30, 30)
-
-    # 1. Encabezado Elegante
-    d.rectangle([0, 0, width, 120], fill=azul_conatel)
-    # Título del Caso
-    d.text((40, 30), f"REPORTE DE INCIDENCIA REGULATORIA", fill=(200, 200, 200))
-    d.text((40, 55), f"CÓDIGO: {data['Código']}", fill=(255, 255, 255))
-    
-    # 2. Cuerpo de la Ficha
-    # Fondo para los datos
-    d.rectangle([40, 150, 860, 480], outline=(220, 220, 220), width=2)
-    
-    y = 170
-    fields = [
-        ("OPERADOR", str(data['OPERADOR'])),
-        ("FECHA REGISTRO", str(data['FECHA'])),
-        ("DENUNCIANTE", str(data['Denunciante'])),
-        ("CÉDULA", str(data['Cédula Denunciante'])),
-        ("UBICACIÓN", f"{data['Estado']} / {data['Municipio']} / {data['Parroquia']}"),
-        ("ASUNTO", str(data['Asunto'])),
-    ]
-    
-    for label, value in fields:
-        d.text((60, y), f"{label}:", fill=azul_conatel)
-        d.text((220, y), str(value), fill=texto_principal)
-        y += 45
-
-    # 3. Descripción (Ajuste de texto para que no se salga)
-    d.text((60, y), "DESCRIPCIÓN DEL CASO:", fill=azul_conatel)
-    desc = str(data['Descripción'])
-    # Dividir descripción en líneas de 80 caracteres
-    lines = [desc[i:i+85] for i in range(0, len(desc), 85)][:4] # Máximo 4 líneas
-    y += 30
-    for line in lines:
-        d.text((60, y), line, fill=(80, 80, 80))
-        y += 25
-        
-    # 4. Pie de página institucional
-    d.rectangle([0, 640, width, 700], fill=gris_fondo)
-    d.text((40, 660), "SISTEMA DE GESTIÓN REGULATORIA DUQUE - CONSULTORÍA ESTRATÉGICA", fill=(100, 100, 100))
-
-    # Guardar en memoria para Streamlit
-    img_byte_arr = io.BytesIO()
-    img.save(img_byte_arr, format='PNG')
-    return img_byte_arr.getvalue()
-
-# --- INTERFAZ DE STREAMLIT ---
-st.title("🚀 Ficha-Bot: Automatización de Denuncias")
-st.markdown("Carga tu Excel/CSV de VenApp para generar fichas de inspección visuales.")
-
-# --- 1. Definimos la variable (El cargador de archivos) ---
-archivo_subido = st.file_uploader("Arrastra aquí tu archivo CSV", type=["csv"])
-
-# --- 2. Ahora sí, la usamos ---
-if archivo_subido is not None:
-    try:
-        # Aquí va el código anti-balas que te pasé antes
-        df = pd.read_csv(
-            archivo_subido, 
-            sep=None, 
-            engine='python', 
-            on_bad_lines='skip', 
-            encoding='utf-8'
-        )
-    except Exception as e:
-        archivo_subido.seek(0)
-        df = pd.read_csv(archivo_subido, sep=',', on_bad_lines='skip', encoding='latin-1')
-    
-    # ... resto del código
-        
-        # Generar y mostrar
-        if st.button("Visualizar Ficha Técnica"):
-            ficha_png = generar_ficha_png(datos_caso)
-            st.image(ficha_png, caption=f"Ficha generada para el caso {codigo_seleccionado}")
+        if 'Código' in df.columns:
+            codigo_sel = st.selectbox("Busca el Código a reportar:", df['Código'].unique())
             
-            # Botón de descarga
-            st.download_button(
-                label="📥 Descargar Ficha PNG",
-                data=ficha_png,
-                file_name=f"Ficha_{codigo_seleccionado}.png",
-                mime="image/png"
-            )
-else:
-    st.warning("⚠️ Por favor, sube el archivo CSV para activar el sistema.")
+            if codigo_sel:
+                datos_caso = df[df['
