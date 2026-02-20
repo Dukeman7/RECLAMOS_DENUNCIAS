@@ -65,29 +65,25 @@ def generar_ficha_png(data):
 st.title("🚀 Ficha-Bot: Automatización de Denuncias")
 st.markdown("Carga tu Excel/CSV de VenApp para generar fichas de inspección visuales.")
 
-if archivo_subido:
+# --- 1. Definimos la variable (El cargador de archivos) ---
+archivo_subido = st.file_uploader("Arrastra aquí tu archivo CSV", type=["csv"])
+
+# --- 2. Ahora sí, la usamos ---
+if archivo_subido is not None:
     try:
-        # Intentamos con separador por defecto (coma) pero ignorando errores de filas
+        # Aquí va el código anti-balas que te pasé antes
         df = pd.read_csv(
             archivo_subido, 
-            sep=None,             # Detecta automáticamente si es coma o punto y coma
-            engine='python',      # El motor Python es más lento pero más robusto
-            on_bad_lines='skip',  # Si una fila tiene errores, se la salta y no mata la App
-            encoding='utf-8'      # Ya que pasamos por el Bloc de Notas
+            sep=None, 
+            engine='python', 
+            on_bad_lines='skip', 
+            encoding='utf-8'
         )
     except Exception as e:
-        # Segundo intento por si el primero falla catastróficamente
         archivo_subido.seek(0)
         df = pd.read_csv(archivo_subido, sep=',', on_bad_lines='skip', encoding='latin-1')
     
-    if not df.empty:
-        st.success(f"🚀 Base de datos cargada: {len(df)} registros procesados.")
-    else:
-        st.error("El archivo parece estar vacío o no se pudo procesar.")    # Selector de caso
-    codigo_seleccionado = st.selectbox("Selecciona el Código a procesar:", df['Código'].unique())
-    
-    if codigo_seleccionado:
-        datos_caso = df[df['Código'] == codigo_seleccionado].iloc[0]
+    # ... resto del código
         
         # Generar y mostrar
         if st.button("Visualizar Ficha Técnica"):
