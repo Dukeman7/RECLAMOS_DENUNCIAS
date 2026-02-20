@@ -9,7 +9,7 @@ st.set_page_config(page_title="Ficha-Bot Duque", layout="wide")
 # 2. FUNCIÓN DE DISEÑO (El motor gráfico)
 def generar_ficha_png(data):
     # Lienzo HD
-    width, height = 900, 750
+    width, height = 450, 750
     img = Image.new('RGB', (width, height), color=(255, 255, 255))
     d = ImageDraw.Draw(img)
     
@@ -32,6 +32,7 @@ def generar_ficha_png(data):
         ("FECHA", str(data.get('FECHA', 'S/D'))),
         ("DENUNCIANTE", str(data.get('Denunciante', 'S/D'))),
         ("CEDULA", str(data.get('Cédula Denunciante', 'S/D'))),
+        ("TELEFONO", str(data.get('Teléfono Denunciante', 'S/D'))),
         ("UBICACION", f"{data.get('Estado', '')} / {data.get('Municipio', '')}"),
         ("ASUNTO", str(data.get('Asunto', 'S/D'))),
     ]
