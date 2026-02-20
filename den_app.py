@@ -8,8 +8,8 @@ st.set_page_config(page_title="Ficha-Bot Duque 2.0", layout="wide")
 
 # 2. FUNCIÓN DE DISEÑO PRO (Corregida y completa)
 def generar_ficha_pro(data):
-    # Lienzo tipo A4 vertical (800x1000)
-    width, height = 800, 1000
+    # Lienzo tipo A4 vertical (800x1000) ahora 450x700 LD
+    width, height = 450, 700
     img = Image.new('RGB', (width, height), color=(255, 255, 255))
     d = ImageDraw.Draw(img)
     
@@ -26,8 +26,8 @@ def generar_ficha_pro(data):
 
     # B. Código y Estatus
     d.text((40, 110), f"CODIGO: {data.get('Código', 'S/D')}", fill=texto_negro)
-    d.text((width - 220, 110), f"ESTATUS: {data.get('ESTATUS', 'ABIERTO')}", fill=rojo_status)
-
+    d.text((width - 280, 110), f"ESTATUS: {data.get('ESTATUS', 'ABIERTO')}", fill=rojo_status)
+          # cambié 220 por 280
     # C. Bloque: DATOS DEL CLIENTE
     d.rectangle([40, 150, width-40, 260], outline=gris_borde, width=2)
     d.text((50, 155), "DATOS DEL CLIENTE", fill=azul_fuerte)
@@ -37,15 +37,15 @@ def generar_ficha_pro(data):
     contacto = f"Telf: {data.get('Teléfono Denunciante', 'S/D')}   |   Email: {data.get('Correo Denunciante', 'S/D')}"
     d.text((60, 235), contacto, fill=texto_negro)
 
-    # D. Bloque: UBICACIÓN
-    d.rectangle([40, 280, width-40, 380], outline=gris_borde, width=2)
+    # D. Bloque: UBICACIÓN          cambie aqui 380 por 300
+    d.rectangle([40, 280, width-40, 300], outline=gris_borde, width=2)
     d.text((50, 285), "UBICACION DEL INCIDENTE", fill=azul_fuerte)
     ubicacion = f"Estado: {data.get('Estado', 'S/D')} | Municipio: {data.get('Municipio', 'S/D')}"
     d.text((60, 315), ubicacion, fill=texto_negro)
     d.text((60, 345), f"Parroquia: {data.get('Parroquia', 'S/D')}", fill=texto_negro)
 
-    # E. Bloque: DETALLE DEL RECLAMO
-    d.rectangle([40, 400, width-40, 660], outline=gris_borde, width=2)
+    # E. Bloque: DETALLE DEL RECLAMO   660 por 550
+    d.rectangle([40, 400, width-40, 550], outline=gris_borde, width=2)
     d.text((50, 405), "DETALLE DEL RECLAMO", fill=azul_fuerte)
     d.text((60, 435), f"Asunto: {data.get('Asunto', 'S/D')}", fill=texto_negro)
     
